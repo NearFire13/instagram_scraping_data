@@ -11,6 +11,8 @@ load_dotenv(dotenv_path)
 
 IG_USERNAME = os.environ.get("IG_USERNAME")
 IG_PASSWORD = os.environ.get("IG_PASSWORD")
+API_USERNAME = os.environ.get("API_USERNAME")
+API_PASSWORD = os.environ.get("API_PASSWORD")
 IG_CREDENTIAL_PATH = "./ig_settings.json"
 SLEEP_TIME = 60  # en secondes
 NBR_THREADS = 6 # le nombre des dernières conversations à surveiller
@@ -36,7 +38,7 @@ except FileNotFoundError:
     
 # Connexion à l'API
 api_token = "https://myimage-jhs5i76ama-ew.a.run.app/token/"
-body = { "username": "wissal", "password": "pw" }
+body = { "username": API_USERNAME, "password": API_PASSWORD }
 headers_urlencoded = {'Content-Type': 'application/x-www-form-urlencoded'}
 response_token = requests.post(api_token, data=body, headers=headers_urlencoded)
 responseJSON = response_token.json();
