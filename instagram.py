@@ -15,7 +15,6 @@ IG_CREDENTIAL_PATH = "./ig_settings.json"
 SLEEP_TIME = 60  # en secondes
 NBR_THREADS = 6 # le nombre des dernières conversations à surveiller
 NBR_MESSAGES = 100 # le nombre de derniers messages à surveiller
-API_URL = "https://exemple.com/api/messages" # URL de l'API
 
 cl = Client()
 
@@ -34,6 +33,21 @@ try:
         processed_messages = [line.strip() for line in file.readlines()]
 except FileNotFoundError:
     processed_messages = []
+    
+# Connexion à l'API
+api_token = "https://myimage-jhs5i76ama-ew.a.run.app/token/"
+body = { "username": "wissal", "password": "pw" }
+headers_urlencoded = {'Content-Type': 'application/x-www-form-urlencoded'}
+response_token = requests.post(api_token, data=body, headers=headers_urlencoded)
+responseJSON = response_token.json();
+
+if response_token.status_code == 200:
+    print("Demande de token à l'API envoyé avec succès")
+else:
+    print("Erreur lors de la demande de token à l'API:", response_token.text)
+
+token = responseJSON["access_token"]
+newMessagesToSend = []
 
 while True:
 
@@ -50,35 +64,36 @@ while True:
             found = True
             
             messageFormat = {
-                "message": message.text,
-                "date": message.timestamp,
-                "socialNetwork": "Instagram"
+                "content": message.text,
+                "date": message.timestamp.strftime("%Y-%m-%d"), #message.timestamp %d-%m-%Y %H:%M:%S
+                "reseaux": "Instagram"
             }
 
             print(messageFormat)
             
-            # Envoyer les messages à l'API REST
-            api_endpoint = API_URL
-            headers = {"Content-Type": "application/json"}
-            response = requests.post(api_endpoint, json=messageFormat, headers=headers)
-
-            if response.status_code == 200:
-                print("Message envoyé avec succès à l'API")
-            else:
-                print("Erreur lors de l'envoi du message à l'API:", response.text)
-            
-            
-            # Ajouter l'ID du message à la liste des messages traités
+            newMessagesToSend.append(messageFormat)
             processed_messages.append(message.id)
     
     # Vérifier si il y a des nouveaux messages
     if not found :
         print("Pas de nouveau message")
     else :
+        # Envoyer les messages à l'API
+        api_messages = "https://myimage-jhs5i76ama-ew.a.run.app/messages/"
+        headers_json = {"Authorization": "Bearer {}".format(token)}
+        response_messages = requests.post(api_messages, json=newMessagesToSend, headers=headers_json)
+        print(newMessagesToSend)
+
+        if response_messages.status_code == 200:
+            print("Messages envoyés avec succès à l'API")
+        else:
+            print("Erreur lors de l'envoi des messages à l'API:", response_messages.text)
+            
+            
         # Enregistrer les IDs des messages traités dans le fichier
         with open(processed_messages_file, "w") as file:
             file.write("\n".join(processed_messages))
-        print("Messages mis à jour")
+        print("Messages mis à jour dans le fichier")
 
     # Attendre pendant un certain temps avant la prochaine vérification
     time.sleep(SLEEP_TIME)  # Attendre SLEEP_TIME secondes avant la prochaine vérification
