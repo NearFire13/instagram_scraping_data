@@ -1,0 +1,7 @@
+ig_settings.json
+processed_messages.txt
+
+# dotenv environment variables file
+.env
+.env.test
+*.env
